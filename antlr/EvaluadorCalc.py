@@ -9,6 +9,9 @@ class EvaluadorCalc(CalcLL1Visitor):
     def __init__(self):
         self.variables = {}
 
+    # ----------------------------------------------------------
+    # programa: ejecuta cada sentencia
+    # ----------------------------------------------------------
     def visitPrograma(self, ctx: CalcLL1Parser.ProgramaContext):
         resultados = []
         for sentencia in ctx.sentencia():
@@ -17,18 +20,48 @@ class EvaluadorCalc(CalcLL1Visitor):
                 resultados.append(r)
         return resultados
 
-    def visitAsignacion(self, ctx: CalcLL1Parser.AsignacionContext):
-        nombre = ctx.ID().getText()
+    # ----------------------------------------------------------
+    # sentencia: id SentenciaP  →  delega en SentenciaP
+    # ----------------------------------------------------------
+    def visitSentenciaConId(self, ctx: CalcLL1Parser.SentenciaConIdContext):
+        return self.visit(ctx.sentenciaP())
+
+    # ----------------------------------------------------------
+    # sentencia: expr sola (no empieza con id)
+    # ----------------------------------------------------------
+    def visitExpresionSola(self, ctx: CalcLL1Parser.ExpresionSolaContext):
+        valor = self.visit(ctx.expr())
+        print(f"  [SEMÁNTICO] Resultado: {valor}")
+        return valor
+
+    # ----------------------------------------------------------
+    # sentenciaP: assign Expr  →  es asignación
+    # ----------------------------------------------------------
+    def visitEsAsignacion(self, ctx: CalcLL1Parser.EsAsignacionContext):
+        nombre = ctx.parentCtx.ID().getText()
         valor  = self.visit(ctx.expr())
         self.variables[nombre] = valor
         print(f"  [SEMÁNTICO] Asignación: {nombre} = {valor}")
         return valor
 
-    def visitExpresion(self, ctx: CalcLL1Parser.ExpresionContext):
-        valor = self.visit(ctx.expr())
-        print(f"  [SEMÁNTICO] Resultado: {valor}")
-        return valor
+    # ----------------------------------------------------------
+    # sentenciaP: TermP ExprP  →  el id era inicio de expresión
+    # ----------------------------------------------------------
+    def visitEsExpresion(self, ctx: CalcLL1Parser.EsExpresionContext):
+        nombre = ctx.parentCtx.ID().getText()
+        if nombre not in self.variables:
+            raise NameError(f"Variable no definida: '{nombre}'")
+        base = self.variables[nombre]
+        # Aplicar TermP sobre base
+        base = self._evalTermP(ctx.termP(), base)
+        # Aplicar ExprP sobre base
+        base = self._evalExprP(ctx.exprP(), base)
+        print(f"  [SEMÁNTICO] Resultado: {base}")
+        return base
 
+    # ----------------------------------------------------------
+    # expr = term exprP
+    # ----------------------------------------------------------
     def visitExpr(self, ctx: CalcLL1Parser.ExprContext):
         izq = self.visit(ctx.term())
         return self._evalExprP(ctx.exprP(), izq)
@@ -44,6 +77,9 @@ class EvaluadorCalc(CalcLL1Visitor):
             acum -= term
         return self._evalExprP(ctx.exprP(), acum)
 
+    # ----------------------------------------------------------
+    # term = unary termP
+    # ----------------------------------------------------------
     def visitTerm(self, ctx: CalcLL1Parser.TermContext):
         izq = self.visit(ctx.unary())
         return self._evalTermP(ctx.termP(), izq)
@@ -65,12 +101,18 @@ class EvaluadorCalc(CalcLL1Visitor):
             acum %= unary
         return self._evalTermP(ctx.termP(), acum)
 
+    # ----------------------------------------------------------
+    # unary: negación o paso directo
+    # ----------------------------------------------------------
     def visitNegacion(self, ctx: CalcLL1Parser.NegacionContext):
         return -self.visit(ctx.factor())
 
     def visitPasoFactor(self, ctx: CalcLL1Parser.PasoFactorContext):
         return self.visit(ctx.factor())
 
+    # ----------------------------------------------------------
+    # factor: funciones trigonométricas y abs
+    # ----------------------------------------------------------
     def visitFuncSin(self, ctx: CalcLL1Parser.FuncSinContext):
         return math.sin(math.radians(self.visit(ctx.expr())))
 
@@ -89,6 +131,9 @@ class EvaluadorCalc(CalcLL1Visitor):
     def visitPasoUnario(self, ctx: CalcLL1Parser.PasoUnarioContext):
         return self.visit(ctx.primary())
 
+    # ----------------------------------------------------------
+    # primary: número, variable, subexpresión
+    # ----------------------------------------------------------
     def visitNumero(self, ctx: CalcLL1Parser.NumeroContext):
         texto = ctx.NUMBER().getText()
         return float(texto) if '.' in texto else int(texto)
