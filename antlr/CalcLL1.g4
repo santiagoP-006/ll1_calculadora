@@ -5,18 +5,20 @@
 
 grammar CalcLL1;
 
-// ============================================================
-// REGLAS SINTÁCTICAS (Parser)
-// ============================================================
+//REGLAS SINTÁCTICAS (Parser)
 
 programa
     : sentencia* EOF
     ;
 
 sentencia
-    : ID ASSIGN expr NEWLINE   # asignacion
-    | expr NEWLINE             # expresion
+    : ID sentenciaP NEWLINE   # sentenciaConId
+    | expr NEWLINE             # expresionSola
     ;
+
+sentenciaP
+    : ASSIGN expr # esAsignacion
+    | expr NEWLINE # esExpresion
 
 // Nivel 1: suma y resta  (menor precedencia)
 expr
