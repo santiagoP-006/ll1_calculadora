@@ -102,4 +102,4 @@ NEWLINE : [\r\n]+ ;
 WS : [ \t]+ -> skip ;
 
 // Ignorar comentarios de línea
-COMMENT : '//' ~[\r\n]* -> skip ;
+COMMENT : '//' ~[\r\n]* [\r\n]+ -> skip ;
