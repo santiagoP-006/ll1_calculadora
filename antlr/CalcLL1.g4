@@ -19,7 +19,7 @@ sentencia
 sentenciaP
     : ASSIGN expr # esAsignacion
     | expr NEWLINE # esExpresion
-
+    ;
 // Nivel 1: suma y resta  (menor precedencia)
 expr
     : term exprP
