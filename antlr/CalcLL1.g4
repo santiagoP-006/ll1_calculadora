@@ -1,7 +1,6 @@
 // CalcLL1.g4 — Gramática LL(1) para calculadora científica
 // Operaciones: +, -, *, /, %, abs, sin, cos, tan
 // Asignación de variables
-// Santiago — Lenguajes de Programación 2026-02
 
 grammar CalcLL1;
 
