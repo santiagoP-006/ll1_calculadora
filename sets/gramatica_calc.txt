@@ -1,0 +1,16 @@
+# Gramatica LL(1) - Calculadora Cientifica - VERSION FINAL
+
+Programa   -> Sentencia Programa | ε
+Sentencia  -> id SentenciaP newline | ExprNoId newline
+SentenciaP -> assign Expr | TermP ExprP
+Expr       -> Term ExprP
+ExprP      -> plus Term ExprP | minus Term ExprP | ε
+Term       -> Unary TermP
+TermP      -> times Unary TermP | divide Unary TermP | mod Unary TermP | ε
+Unary      -> minus Factor | Factor
+Factor     -> sin lparen Expr rparen | cos lparen Expr rparen | tan lparen Expr rparen | abs lparen Expr rparen | PrimaryNoId
+PrimaryNoId -> number | lparen Expr rparen
+ExprNoId   -> UnaryNoId TermP ExprP
+UnaryNoId  -> minus Factor | FactorNoId
+FactorNoId -> sin lparen Expr rparen | cos lparen Expr rparen | tan lparen Expr rparen | abs lparen Expr rparen | PrimaryNoId
+
